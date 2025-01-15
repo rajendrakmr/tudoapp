@@ -31,7 +31,7 @@ RUN npm install --only=production
 EXPOSE 5173
 
 # Set the default command to run the app
-CMD ["npm", "run", "serve"]
+CMD ["npm", "run", "dev","5173"]
 
 
 # FROM node:20 as builder
