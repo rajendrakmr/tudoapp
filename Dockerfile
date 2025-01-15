@@ -1,9 +1,10 @@
 # Stage 1: Builder
 FROM node:20 as builder
 
+# Set working directory
 WORKDIR /app
 
-# Copy only package.json and package-lock.json to optimize caching
+# Copy package.json and package-lock.json to optimize caching
 COPY package*.json ./
 
 # Install dependencies
@@ -12,26 +13,27 @@ RUN npm install
 # Copy the rest of the application source code
 COPY . .
 
-# Build the application
+# Build the application (creates a production-ready build in /app/dist)
 RUN npm run build
 
 # Stage 2: Production
-FROM node:20-alpine as production
+FROM nginx:stable-alpine as production
 
-WORKDIR /app
+# Set working directory to nginx's default static directory
+WORKDIR /usr/share/nginx/html
 
-# Copy only the build output and necessary files from the builder stage
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
+# Copy build output from builder stage
+COPY --from=builder /app/dist ./
 
-# Install production dependencies only
-RUN npm install --only=production
+# Copy custom nginx configuration if needed (optional)
+# COPY nginx.conf /etc/nginx/nginx.conf
 
-# Expose the application port
-EXPOSE 5173
+# Expose port 80 for serving static files
+EXPOSE 80
 
-# Set the default command to run the app
-CMD ["npm", "run", "preview","5173"]
+# Start nginx (default CMD for nginx image)
+CMD ["nginx", "-g", "daemon off;"]
+
 
 
 # FROM node:20 as builder
